@@ -6,51 +6,58 @@
 
 public class Bitonic implements Runnable{
      private int[] data;
-     private int size;
      private int start;
      private int end;
      private CylicBarrier cb;
      private int id;
      
-     
-     public Bitonic(int[]data, int size, int thread_ID, int start, int end, CylicBarrier cb){
+     /**
+      * Constructor
+      */
+     public Bitonic(int[]data, int id, int num_threads, CylicBarrier cb){
          this.data = data;
-         this.size = size;
-         this.id = thread_ID;
-         this.start = start;
-         this.end = end;
+         this.id = id;
+         this.start = id*(data.length / num_threads);
+         this.end = id != N_THREADS-1 ? (id + 1) * piece : data.length;
          this.cb = cb;
      }
      
+     /*
+      * 
+      */
      public void sort(){
-         
-         for (int j = k / 2; j > 0; j /= 2){
-             for (int i = 0; i < size; i++){
-                 int ixj = i ^j;
-                 if (ixj > i) {
-                    if ((i & k) == 0 && (data[i] > data[ixj])){
-                        int temp = data[i];
-                        data[i] = data[ixj];
-                        data[ixj] = temp;
-                    }
-                    if ((i & k) != 0 && (data[i] < data[ixj])){
-                        int temp = data[i];
-                        data[i] = data[ixj];
-                        data[ixj] = temp;
+        for(int k =2; k < data.length; k*=2){
+
+            for (int j = k / 2; j > 0; j /= 2){
+
+                for (int i = 0; i < this.data.length; i++){
+                     
+                     int ixj = i ^j;
+
+                    if (ixj > i) {
+                        if ((i & k) == 0 && (data[i] > data[ixj])){
+                            int temp = data[i];
+                            data[i] = data[ixj];
+                            data[ixj] = temp;
+                        }
+
+                        if ((i & k) != 0 && (data[i] < data[ixj])){
+                            int temp = data[i];
+                            data[i] = data[ixj];
+                            data[ixj] = temp;
+                        }
                     }
                 }
-             }
-         }
+                this.cb.await();
+            }
+        }
      }
      
      public void run(){
         try{
-            for(int k =2; k < n; k*=2){
             sort();
-            cb.await();
-        }    
-            
         }catch(InterruptedException e){
+            e.printStackTrace();
             System.out.println("thread" + this.id + "offline");
         }
             
