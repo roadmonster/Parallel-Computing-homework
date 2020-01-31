@@ -4,12 +4,19 @@
  *Each thread only does their allocated share of work and use the CyclicBarrier to sychronize between threads.
  */
 
+import java.lang.*;
+import java.io.*; 
+import java.util.Random; 
+import java.util.*;
+import java.util.concurrent.*;
+
+
 public class Bitonic implements Runnable{
-     private int[] data;
-     private int start;
-     private int end;
-     private CylicBarrier cb;
-     private int id;
+     int[] data;
+     int start;
+     int end;
+     CyclicBarrier cb;
+     int id;
      
      /**
       * Constructor
@@ -18,12 +25,13 @@ public class Bitonic implements Runnable{
          this.data = data;
          this.id = id;
          this.start = id*(data.length / num_threads);
-         this.end = id != N_THREADS-1 ? (id + 1) * piece : data.length;
+         this.end = id != N_THREADS-1 ? (id + 1) * (data.length / num_threads) : data.length;
          this.cb = cb;
      }
      
      /*
-      * 
+      * sort class doing the bitonic sort on the given chunk of data
+      * Each column will have a barrier to synchronize the threads
       */
      public void sort(){
         for(int k =2; k < data.length; k*=2){
@@ -48,7 +56,7 @@ public class Bitonic implements Runnable{
                         }
                     }
                 }
-                this.cb.await();
+                this.cb.await(); //use cylic barrier to sync all the threads
             }
         }
      }
