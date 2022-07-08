@@ -1,6 +1,6 @@
 #pragma once
 #include <pthread.h>
-
+#include <iostream>
 template<typename P>
 class ThreadGroup{
 private:
@@ -21,7 +21,9 @@ private:
     static void* startThread(void* args){
         Node *node = (Node*)args;
         P process;
-        process(node->id, node->sharedData)
+        std::cout << "just before create thread " << node->id << std::endl; 
+        process(node->id, node->sharedData);
+        std::cout << "just after create thread " << node->id << std::endl; 
         return nullptr;
     }
 
