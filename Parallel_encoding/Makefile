@@ -5,3 +5,6 @@ example: example.cpp ThreadGroup.h
 
 parallel_seq: parallel_seq.cpp
 	g++ $(CPPFLAGS) $< -o $@
+
+parallel_seq: parallel_simple.cpp ThreadGroup.h
+	g++ $(CPPFLAGS) $< -o $@
