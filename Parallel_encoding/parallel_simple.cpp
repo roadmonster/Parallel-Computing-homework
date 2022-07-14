@@ -1,37 +1,7 @@
 #include <iostream>
-#include <vector>
 #include "ThreadGroup.h"
 using namespace std;
 
-int* data;
-const int N_THREADS = 4;
-class ParaCoder{
-public:
-    void operator()(int id, void* data, int length){
-        int* myData = (int*)data;
-        int piece = length / N_THREADS;
-        int start = id * piece;
-        int end = id != N_THREADS-1 ? (id + 1) * piece : length;
-
-        for(int i = start; i < end; i++){
-            myData[i] = encode(myData[i]);
-        }
-    }
-};
-
-class ParaDecoder{
-public:
-    void operator()(int id, void* data, int length){
-        int *myData = (int*)data;
-        int piece = length / N_THREADS;
-        int start = id * piece;
-        int end = id != N_THREADS-1 ? (id + 1) * piece : length;
-
-        for(int i = start; i < end; i++){
-            myData[i] = encode(myData[i]);
-        }
-    }
-};
 int encode(int v){
     for(int i = 0; i < 500; i++){
         v = ((v * v) + v) % 10; 
@@ -39,24 +9,70 @@ int encode(int v){
     return v;
 }
 
+int decode(int v) {
+	return encode(v);
+}
+
+struct SharedData{
+    static const int N_THREADS = 2;
+    int start[N_THREADS];
+    int end[N_THREADS];
+    int* data;
+};
+
+class ParaCoder{
+public:
+    void operator()(int id, void* data){
+        SharedData* myData = (SharedData*)data;
+
+        int start = myData->start[id];
+        int end = myData->end[id];
+
+        for(int i = start; i < end; i++){
+            myData->data[i] = encode(myData->data[i]);
+        }
+    }
+};
+
+class ParaDecoder{
+public:
+    void operator()(int id, void* data){
+        SharedData* myData = (SharedData*)data;
+
+        int start = myData->start[id];
+        int end = myData->end[id];
+
+        for(int i = start; i < end; i++){
+            myData->data[i] = decode(myData->data[i]);
+        }
+    }
+};
 
 void prefixSum(int *data, int length){
-    ThreadGroup<ParaCoder>coderThreads;
-    for(int i = 0; i < N_THREADS; i++){
-        coderThreads.createThread(i, data);
-    }
-    coderThreads.waitForAll();
+    SharedData ourData;
+	ourData.start[0] = 0;
+	int pieceLength = length/SharedData::N_THREADS;
+	for (int t = 1; t < SharedData::N_THREADS; t++)
+		ourData.end[t-1] = ourData.start[t] = ourData.start[t-1] + pieceLength;
+	ourData.end[SharedData::N_THREADS-1] = length;
+	ourData.data = data;
 
-    int encodedSum = 0;
-    for(int i = 0; i < length; i++){
-        encodedSum += data[i];
-        data[i] = encodedSum;
-    }
+    ThreadGroup<ParaCoder> encoders;
+	for (int t = 0; t < SharedData::N_THREADS; t++)
+		encoders.createThread(t, &ourData);
+	encoders.waitForAll();
+
+	int encodedSum = 0;
+	for (int i = 0; i < length; i++) {
+		encodedSum += data[i];
+		data[i] = encodedSum;
+	}
     ThreadGroup<ParaDecoder>decoderThreads;
-    for(int i = 0; i < N_THREADS; i++){
-        decoderThreads.createThread(i, data);
+    for(int i = 0; i < SharedData::N_THREADS; i++){
+        decoderThreads.createThread(i, &ourData);
     }
-    coderThreads.waitForAll();
+    decoderThreads.waitForAll();
+
 }
 
 

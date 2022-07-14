@@ -28,5 +28,5 @@ int main(){
     for(int i = 0; i < N_THREAD; i++){
         std::cout << "thread " << i << "wrote "<< ourData[i] << std::endl;
     }
-    return 0;
+    return 0; 
 }
