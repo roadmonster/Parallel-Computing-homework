@@ -9,3 +9,5 @@ Parallel_encoding/parallel_seq
 Parallel_encoding/parallel_seq.dSYM/Contents/Info.plist
 Parallel_encoding/parallel_seq.dSYM/Contents/Resources/DWARF/parallel_seq
 .DS_Store
+*.class
+.gitignore
