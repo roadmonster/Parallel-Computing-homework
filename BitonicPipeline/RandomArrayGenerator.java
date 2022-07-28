@@ -15,7 +15,7 @@ public class RandomArrayGenerator implements Runnable{
     public void run() {
         while(true){
             try {
-                output.offer(getArray(this.size), timeout * 1000, TimeUnit.MILLISECONDS)
+                output.offer(getArray(this.size), timeout * 1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 return;
             }
