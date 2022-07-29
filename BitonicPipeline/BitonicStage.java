@@ -47,7 +47,7 @@ public class BitonicStage implements Runnable {
                 // }
                 try {
                     array1 = input1.poll(timeout * 1000, TimeUnit.MILLISECONDS);
-                    array2 = input1.poll(timeout * 1000, TimeUnit.MILLISECONDS);
+                    array2 = input2.poll(timeout * 1000, TimeUnit.MILLISECONDS);
                     if (array1 != null && array2 != null) {
                         double a[] = process(array1, array2);
                         output.offer(a, timeout * 1000, TimeUnit.MILLISECONDS);
@@ -71,9 +71,9 @@ public class BitonicStage implements Runnable {
      * @return
      */
     public double[] process(double[] half1, double[] half2){
-        if (this.data == null || this.data.length != 2 * half1.length){
-            this.data = new double[half1.length + half2.length];
-        }
+        
+        this.data = new double[half1.length + half2.length];
+        
         int i = 0; 
         for (int j = 0; j < half1.length; j++){
             data[i++] = half1[j];
