@@ -11,3 +11,7 @@ Parallel_encoding/parallel_seq.dSYM/Contents/Resources/DWARF/parallel_seq
 .DS_Store
 *.class
 .gitignore
+.vscode/configurationCache.log
+.vscode/dryrun.log
+.vscode/settings.json
+.vscode/targets.log
