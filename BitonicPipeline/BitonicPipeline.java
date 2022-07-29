@@ -34,6 +34,7 @@ class BitonicPipeline{
             ArrayList<SynchronousQueue<double[]>>queues = new ArrayList<>();
             for (int i = 0; i < N_QUEUES; i++){
                 queues.add(new SynchronousQueue<double[]>());
+                
             }
 
             /*
@@ -54,7 +55,8 @@ class BitonicPipeline{
              * hence #10 -> #6, #9 -> #5, #8 -> #4, #7 -> #3, left as input, right as output
              */
             for (int i = 1; i <= N_STAGE_ONES; i++){
-                threads[N_THREADS - N_ARRAY_GENS - i] = new Thread(new StageOne(queues.get(N_QUEUES - i), 
+                threads[N_THREADS - N_ARRAY_GENS - i] = new Thread(new StageOne(
+                    queues.get(N_QUEUES - i), 
                     queues.get(N_QUEUES - N_ARRAY_GENS - i), "one" + i));
             }
             /**
@@ -67,11 +69,12 @@ class BitonicPipeline{
              */
             for (int i = 0; i < N_INTERIOR; i++){
                 threads[i] = new Thread(
-                                new BitonicStage(queues.get(2 * i + 1), queues.get(2 * i + 2), 
-                                                queues.get(i), "bit " + i));
+                                new BitonicStage(
+                                    queues.get(2 * i + 1), queues.get(2 * i + 2), 
+                                    queues.get(i), "bit " + i));
             }
             // initialize the threads
-            for (int i = 0; i < N_THREADS; i++){
+            for (int i = 0; i < threads.length; i++){
                 threads[i].start();
             }
 
