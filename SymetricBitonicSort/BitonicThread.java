@@ -8,7 +8,7 @@ public class BitonicThread implements Runnable{
     public static void main(String[] args) throws InterruptedException {
         final int TIME_ALLOWED = 10;
         final int N = 1 << 22;
-        final int P = 16;
+        final int P = 32;
         final int GRANULARITY = 4;
 
         long start = System.currentTimeMillis();
