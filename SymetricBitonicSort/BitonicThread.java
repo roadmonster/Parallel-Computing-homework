@@ -1,10 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CyclicBarrier;
 
 public class BitonicThread implements Runnable{
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         final int TIME_ALLOWED = 10;
         final int N = 1 << 22;
         final int P = 16;
@@ -37,13 +38,13 @@ public class BitonicThread implements Runnable{
     public static void process(double[]data, int p, int g) throws InterruptedException{
         // structure to hold cyclicbarrier
         CyclicBarrier[] barriers = new CyclicBarrier[p];
-        int n = data.length;
+        
         int threadPerBarrier = p;
         int i = 1;
-        int width = n;
+        
         for(int node = 0; node < barriers.length; node++){
             if(node == i){
-                width /= 2;
+                
                 i = i * 2 + 1;
                 threadPerBarrier /= 2;
             }
@@ -62,8 +63,36 @@ public class BitonicThread implements Runnable{
         }
     }
 
-    public BitonicThread(double[]array, int t, int threadNum, CyclicBarrier[]barriers) {
-        
+    public BitonicThread(double[]array, int currThreadIndex, int threadNum, CyclicBarrier[]barriers) {
+        this.array = array;
+        int size = array.length / threadNum;
+        this.start = currThreadIndex * size;
+        this.end = this.start + size;
+        this.barrierHeap = barriers;
+        this.threadIdx = currThreadIndex;
+    }
+
+    private int threadIdx, start, end;
+    private double[]array;
+    private CyclicBarrier[]barrierHeap;
+    private static Random rand = new Random();
+    private static double[] randomArray(int n){
+        double ret[] = new double[n];
+        for(int i = 0; i < n; i++){
+            ret[i] = rand.nextDouble() * 100. 0;
+        }
+        return ret;
+    }
+
+    private static boolean isSorted(double[]a){
+        if (a == null) return false;
+        double prev = a[0];
+        for(int i = 1; i < a.length; i++){
+            if(a[i] < prev)
+                return false;
+            prev = a[i];
+        }
+        return true;
     }
     
 }
