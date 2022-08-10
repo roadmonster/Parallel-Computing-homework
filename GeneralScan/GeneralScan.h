@@ -1,3 +1,8 @@
+#include <vector>
+#include <future>
+#include <cmath>
+#include <stdexcept>
+
 template<typename ElemType, typename TallyType=ElemType, typename ResultType=TallyType>
 class GeneralScan{
 public:
@@ -32,11 +37,15 @@ public:
     }
 
     ResultType getReduction(int i = ROOT){
-        //TODO
+        if (i > size())
+            throw std::invalid_argument("non-existent node");
+        reduced = reduced || reduce(ROOT);
+        return gen(value(i));
     }
 
     void getScan(ScanData *output){
-        //TODO
+        reduced = reduced || reduce(ROOT);
+        scan(ROOT, init(), output);
     }
 
 protected:
@@ -74,7 +83,7 @@ private:
                 reduce(left(i));
                 reduce(right(i));
             }
-            interior->at(i) = combine(value(left(i)), value(right(i));
+            interior->at(i) = combine(value(left(i)), value(right(i)));
         }
         return true;
     }
@@ -83,9 +92,9 @@ private:
         if(isLeaf(i)){
             output->at(i - (n-1)) = gen(combine(tallyPrior, value(i)));
         }else{
-            if (i < n_thread -1){
-                auto handle = std::async(stdd::async, &GeneralScan::scan, this, left(i), tallyPrior, output);
-                scan(right(i), combine(tallyPrior, value(left(i)), output));
+            if (i < n_threads -1){
+                auto handle = std::async(std::launch::async, &GeneralScan::scan, this, left(i), tallyPrior, output);
+                scan(right(i), combine(tallyPrior, value(left(i))), output);
                 handle.wait();
             }
             else{
