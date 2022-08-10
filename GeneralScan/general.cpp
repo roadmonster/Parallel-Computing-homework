@@ -127,6 +127,61 @@ protected:
     }
 };
 
+struct Histo{
+    static const int N = 10;
+    int bucket[N + 2];
+    int hi, lo;
+
+    Histo() : hi(100), lo(0){
+        for (int i = 0; i < N + 2; i++){
+            bucket[i] = 0;
+        }
+    }
+}
+
+std::ostream &operator<<(std::ostream &out, const Histo &histo){
+    out << "|";
+    for (int count: histo.bucket){
+        out << count << "|";
+    }
+    return out;
+}
+
+class HistorScan: public GeneralScan<int, Histo>{
+public:
+    HistoScan(const std::vector<int> *data): GeneralScan<int, Histo>(data){}
+    
+protected:
+    virtual Histo init() const{
+        Histo h;
+        return h;
+    }
+
+    virtual Histo prepare(const int &dataum) const{
+        Histo h;
+        int bucket_size = (h.hi - h.lo) / h.N;
+        if (dataum < h.lo)
+            h.bucket[0]++;
+        else if (dataum >= h.hi)
+            h.bucket[h.N + 1]++;
+        else
+            h.bucket[1 + (dataum - h.lo)/ bucket_size]++;
+        return h;
+    }
+
+    virtual Histo combine(const Histo &left, const Histo &right) const {
+        Histo h;
+        for (int i = 0; i < h.N + 2; i++){
+            h.bucket[i] = left.bucket[i] + right.bucket[i];
+        }
+        return h;
+    }
+
+    virtual Histo gen(const Histo &tally) const {
+        return tally;
+    }
+}
+
 bool test_max_scan(){
     using namespace std;
     const int N = 1 << 27;  // FIXME must be power of 2 for now
