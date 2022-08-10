@@ -1,5 +1,7 @@
 #include <iostream>
+#include <random>
 #include "GeneralScan.h"
+
 template<typename NumType>
 class MaxScan : public GeneralScan<NumType>{
 public:
@@ -157,12 +159,39 @@ bool test_max_scan(){
     }
     cout << "in " << elpased << "ms" << endl;
     return true;
-
-
 }
+
+bool test_avg_low_ten(){
+    using namespace std;
+    const int N = 1 << 10;
+    vector<int> data(N);
+    for (int i = 0; i < N; i++){
+        data[i] = rand() % 100;
+    }
+    vector<Ten>prefix(N);
+
+    auto start = chrono::steady_clock::now();
+    LowTen low_ten(&data);
+    cout << "low ten: " << low_ten.getReduction() << endl;
+    low_ten.getScan(&prefix);
+
+    auto end = chrono::steady_clock::now();
+    auto elapsed = chrono::duration<double, milli>(end - start).count();
+
+    for (int i = 0; i < 100; i++){
+        Ten elem = prefix[i];
+        cout << "adding in " << data[i] << ": " << elem << endl;
+    }
+    cout << "in " << elapsed << "ms" << endl;
+    return true;
+}
+
+
 
 int main(){
     using namespace std;
     if (!test_max_scan())
         cout << "test_max_scan failed" << endl;
+    if (!test_avg_low_ten())
+        cout << "test_low_ten failed" << endl;
 }
