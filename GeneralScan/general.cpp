@@ -137,7 +137,7 @@ struct Histo{
             bucket[i] = 0;
         }
     }
-}
+};
 
 std::ostream &operator<<(std::ostream &out, const Histo &histo){
     out << "|";
@@ -147,7 +147,7 @@ std::ostream &operator<<(std::ostream &out, const Histo &histo){
     return out;
 }
 
-class HistorScan: public GeneralScan<int, Histo>{
+class HistoScan: public GeneralScan<int, Histo>{
 public:
     HistoScan(const std::vector<int> *data): GeneralScan<int, Histo>(data){}
     
@@ -180,8 +180,86 @@ protected:
     virtual Histo gen(const Histo &tally) const {
         return tally;
     }
+};
+
+class ExamHeap : public GeneralScan<double>{
+public:
+    ExamHeap(const std::vector<double> *data) : GeneralScan<double>(data){
+
+    }
+protected:
+    virtual double init() const{
+        return 1.0;
+    }
+
+    virtual double prepare(const double &probability_of_miss) const{
+        return 1.0 - probability_of_miss;
+    }
+
+    virtual double combine(const double &left, const double &right) const{
+        return left * right;
+    }
+    
+    virtual double gen(const double &tally) const{
+        return tally;
+    }
+};
+
+class SumHeap : public GeneralScan<int>{
+public:
+    SumHeap(const std::vector<int> *data) : GeneralScan<int>(data){}
+protected:
+    virtual int init() const {
+        return 0;
+    }
+
+    virtual int prepare(int& dataum) const{
+        return dataum;
+    }
+
+    virtual int combine(const int& left, const int& right) const{
+        return left + right;
+    }
+
+    virtual int gen(const int& tally){
+        return tally;
+    }
+};
+
+bool testExamHeap(){
+    using namespace std;
+    const int N = 1 << 3;
+    vector<double> data(N, 1e-3);
+    vector<double> prefix(N, 1.0);
+
+    auto start = chrono::steady_clock::now();
+
+    ExamHeap heap(&data);
+    cout << "exam1: " << heap.getReduction() << endl;
+    heap.getScan(&prefix);
+
+    auto end = chrono::steady_clock::now();
+    auto elapsed = chrono::duration<double, milli>(end - start).count();
+
+    double check = 1.0;
+    for (double elem: prefix) {
+        check *= 1.0 - 1e-3;
+        if (abs(elem - check) > 1e-8) {
+            cout << "FAILED RESULT at " << check << endl;
+            return false;
+        }
+        // cout << elem << endl;
+    }
+    cout << "in " << elapsed << "ms" << endl;
+    return true;
+
+    
 }
 
+
+bool testSumHeap(){
+
+}
 bool test_max_scan(){
     using namespace std;
     const int N = 1 << 27;  // FIXME must be power of 2 for now
