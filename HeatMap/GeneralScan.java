@@ -3,6 +3,7 @@ package HeatMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
 public class GeneralScan<ElemType, TallyType>{
     public static final int DEFAULT_THREAD_THRESHOLD = 10_000;
@@ -145,6 +146,63 @@ public class GeneralScan<ElemType, TallyType>{
         }
     }
 
+    protected TallyType getScan(){
+        if (!reduced){
+            pool.invoke(new ComputeReduction(ROOT));
+            reduced = true;
+        }
+        return value(ROOT);
+    }
 
+    public TallyType getReduction(){
+        if(!reduced){
+            pool.invoke(new ComputeReduction(ROOT));
+            reduced = true;
+        }
+        return value(ROOT);
+    }
+
+    class ComputeReduction extends RecursiveAction{
+        private int i;
+
+        public ComputeReduction(int i){
+            this.i = i;
+        }
+
+        @Override
+        protected void compute() {
+            if(dataCount(i) <= threshold){
+                reduce(i);
+                return;
+            }
+            invokeAll(new ComputeReduction(left(i)), new ComputeReduction(right(i)));
+            interior.set(i, combine(value(left(i)), value(right(i))));
+            
+        }
+
+    }
+
+    class ComputeScan extends RecursiveAction{
+        private int i;
+        private TallyType tallyPrior;
+        private List<TallyType> output;
+
+        public ComputeScan(int i, TallyType tallyPrior, List<TallyType> output){
+            this.i = i;
+            this.tallyPrior = tallyPrior;
+            this.output = output;
+        }
+
+        @Override
+        protected void compute() {
+            if (dataCount(i) <= threshold){
+                scan(i, tallyPrior, output);
+                return;
+            }
+            invokeAll(new ComputeScan(left(i), tallyPrior, output), 
+                      new ComputeScan(right(i), combine( tallyPrior, value(left(i))), output));
+            
+        }
+    }
 
 }
